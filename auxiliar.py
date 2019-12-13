@@ -5,18 +5,23 @@ import logging
 logging.basicConfig(filename="file.log", filemode='w', level=logging.INFO,
                     format='[%(levelname)s] - %(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
-CREATE_DB_SQL = ''' CREATE TABLE USER (
-           ID INT PRIMARY KEY NOT NULL,
-           IS_LOGIN BOOLEAN DEFAULT 0,
+CREATE_USER_SQL = ''' CREATE TABLE USER (
+           CHAT_ID INTEGER PRIMARY KEY NOT NULL,
            TOKEN TEXT,
            USER_ID INT,
-           USERNAME TEXT,
-           PASSWORD TEXT
-        ); '''
+           USERNAME TEXT
+        );'''
+
+CREATE_STATUS_SQL = ''' CREATE TABLE STATUS (
+            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            CHAT_ID INT NOT NULL,
+            IS_LOGIN BOOLEAN DEFAULT 0,
+            FOREIGN KEY(CHAT_ID) REFERENCES USER(ID) ON DELETE CASCADE
+); '''
 
 def check_user(id):
     conn = get_db()
-    cursor = conn.execute(''' SELECT * FROM USER WHERE ID = %s; ''' % id)
+    cursor = conn.execute(''' SELECT * FROM USER WHERE CHAT_ID = %s; ''' % id)
     conn.commit()
     user = cursor.fetchone()
     conn.close()
@@ -24,15 +29,18 @@ def check_user(id):
 
 def create_user(id):
     conn = get_db()
-    conn.execute(''' INSERT INTO USER (ID) VALUES (%s); ''' % (id,))
+    conn.execute(''' INSERT INTO USER (CHAT_ID) VALUES (%s); ''' % id)
+    conn.execute(''' INSERT INTO STATUS (CHAT_ID) VALUES (%s); ''' % id)
     conn.commit()
     conn.close()
 
 def create_db():
     conn = get_db()
     conn.execute(''' DROP TABLE IF EXISTS USER; ''')
+    conn.execute(''' DROP TABLE IF EXISTS STATUS; ''')
     conn.commit()
-    conn.execute(CREATE_DB_SQL)
+    conn.execute(CREATE_USER_SQL)
+    conn.execute(CREATE_STATUS_SQL)
     conn.commit()
     conn.close()
     logging.info("Base de datos creada correctamente.")
@@ -41,65 +49,66 @@ def reset_db(bot, message):
     conn = get_db()
     bot.send_message(message.from_user.id, "Base de datos conectada correctamente.")
     conn.execute(''' DROP TABLE IF EXISTS USER; ''')
+    conn.execute(''' DROP TABLE IF EXISTS STATUS; ''')
     conn.commit()
     bot.send_message(message.from_user.id, "Base de datos eliminada correctamente.")
-    conn.execute(CREATE_DB_SQL)
+    conn.execute(CREATE_USER_SQL)
+    conn.execute(CREATE_STATUS_SQL)
     conn.commit()
     bot.send_message(message.from_user.id, "Base de datos creada correctamente.")
     conn.close()
 
 def set_is_login(id):
     conn = get_db()
-    conn.execute(''' UPDATE USER SET IS_LOGIN = TRUE, USERNAME = Null, PASSWORD = Null, TOKEN = Null WHERE ID = %s; ''' % id)
+    conn.execute(''' UPDATE STATUS SET IS_LOGIN = TRUE WHERE CHAT_ID = %s; ''' % id)
+    conn.execute(''' UPDATE USER SET USERNAME = NULL, USER_ID = NULL, TOKEN = NULL WHERE CHAT_ID = %s; ''' % id)
     conn.commit()
     conn.close()
 
 def set_is_not_login(id):
     conn = get_db()
-    conn.execute(''' UPDATE USER SET IS_LOGIN = FALSE WHERE ID = %s; ''' % id)
+    conn.execute(''' UPDATE STATUS SET IS_LOGIN = FALSE WHERE CHAT_ID = %s; ''' % id)
     conn.commit()
     conn.close()
 
-def check_value(id, value):
+def check_value(id, value, table):
     conn = get_db()
-    cursor = conn.execute(''' SELECT %s FROM USER WHERE ID = %s; ''' % (value, id))
+    cursor = conn.execute(''' SELECT %s FROM %s WHERE CHAT_ID = %s; ''' % (value, table, id))
     conn.commit()
     v = cursor.fetchone()
     conn.close()
     return v[0]
 
-def save_value(id, value, column):
+def save_value(id, value, column, table):
     conn = get_db()
-    conn.execute(''' UPDATE USER SET %s = '%s' WHERE ID = %s; ''' % (column, value, id))
+    conn.execute(''' UPDATE %s SET %s = '%s' WHERE CHAT_ID = %s; ''' % (table, column, value, id))
     conn.commit()
     conn.close()
 
-def delete_value(id, column):
+def delete_value(id, column, table):
     conn = get_db()
-    conn.execute(''' UPDATE USER SET %s = %s WHERE ID = %s; ''' % (column, 'null', id))
+    conn.execute(''' UPDATE %s SET %s = %s WHERE CHAT_ID = %s; ''' % (table, column, 'null', id))
     conn.commit()
     conn.close()
 
-def get_save_token_and_id(id, base_url):
+def get_save_token_and_id(id, base_url, password):
     res = False
-    username = check_value(id, "USERNAME")
-    pasword = check_value(id, "PASSWORD")
+    username = check_value(id, "USERNAME", "USER")
     form = {
         "username": username,
-        "password": pasword
+        "password": password
     }
     response = requests.post(url=base_url + "/gateway/authentication/login/", data=form)
     if response.status_code is 200:
         token = response.json()['token']
-        save_value(id, token, "TOKEN")
+        save_value(id, token, "TOKEN", "USER")
         res = True
 
         form = {"token": token}
         response = requests.post(url=base_url + "/gateway/authentication/getuser/", data=form)
         if response.status_code is 200:
             user_id = response.json()['id']
-            save_value(id, user_id, "USER_ID")
-            delete_value(id, "PASSWORD")
+            save_value(id, user_id, "USER_ID", "USER")
 
     return res
 

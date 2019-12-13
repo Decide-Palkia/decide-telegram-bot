@@ -49,24 +49,18 @@ def login(message):
 
 @bot.message_handler(func=lambda m: True)
 def any_message(message):
-    user_id = message.from_user.id
+    chat_id = message.from_user.id
     text = str(message.text).strip()
-    if auxiliar.check_value(user_id, "IS_LOGIN") and not auxiliar.check_value(user_id, "USERNAME") \
-            and not auxiliar.check_value(user_id, "PASSWORD"):
+    if auxiliar.check_value(chat_id, "IS_LOGIN", "STATUS") and not auxiliar.check_value(chat_id, "USERNAME", "USER"):
         try:
-            auxiliar.save_value(user_id, text, "USERNAME")
-            bot.send_message(user_id, "¿Y tu contraseña?")
+            auxiliar.save_value(chat_id, text, "USERNAME", "USER")
+            bot.send_message(chat_id, "¿Y tu contraseña?")
         except Exception as e:
-            logging.error("Ha ocurrido un problema al guardar el username.")
-    elif auxiliar.check_value(user_id, "IS_LOGIN") and auxiliar.check_value(user_id, "USERNAME") \
-            and not auxiliar.check_value(user_id, "PASSWORD"):
+            logging.error("Ha ocurrido un problema al guardar el username.", exc_info=True)
+    elif auxiliar.check_value(chat_id, "IS_LOGIN", "STATUS") and auxiliar.check_value(chat_id, "USERNAME", "USER"):
         try:
-            auxiliar.save_value(user_id, text, "PASSWORD")
-            auxiliar.set_is_not_login(user_id)
-        except Exception as e:
-            logging.error("Ha ocurrido un problema al guardar el password.", exc_info=True)
-        try:
-             if auxiliar.get_save_token_and_id(user_id, BASE_URL):
+             if auxiliar.get_save_token_and_id(chat_id, BASE_URL, text):
+                 auxiliar.set_is_not_login(chat_id)
                  bot.send_message(message.from_user.id, "¡Perfecto!")
                  bot.send_message(message.from_user.id, "Ya hemos guardado tus credenciales.")
              else:
