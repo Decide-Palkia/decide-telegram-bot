@@ -8,9 +8,10 @@ logging.basicConfig(filename="file.log", filemode='w', level=logging.INFO,
 CREATE_DB_SQL = ''' CREATE TABLE USER (
            ID INT PRIMARY KEY NOT NULL,
            IS_LOGIN BOOLEAN DEFAULT 0,
+           TOKEN TEXT,
+           USER_ID INT,
            USERNAME TEXT,
-           PASSWORD TEXT,
-           TOKEN TEXT
+           PASSWORD TEXT
         ); '''
 
 def check_user(id):
@@ -73,7 +74,13 @@ def save_value(id, value, column):
     conn.commit()
     conn.close()
 
-def get_save_token(id, base_url):
+def delete_value(id, column):
+    conn = get_db()
+    conn.execute(''' UPDATE USER SET %s = %s WHERE ID = %s; ''' % (column, 'null', id))
+    conn.commit()
+    conn.close()
+
+def get_save_token_and_id(id, base_url):
     res = False
     username = check_value(id, "USERNAME")
     pasword = check_value(id, "PASSWORD")
@@ -83,8 +90,17 @@ def get_save_token(id, base_url):
     }
     response = requests.post(url=base_url + "/gateway/authentication/login/", data=form)
     if response.status_code is 200:
-        save_value(id, response.json()['token'], "TOKEN")
+        token = response.json()['token']
+        save_value(id, token, "TOKEN")
         res = True
+
+        form = {"token": token}
+        response = requests.post(url=base_url + "/gateway/authentication/getuser/", data=form)
+        if response.status_code is 200:
+            user_id = response.json()['id']
+            save_value(id, user_id, "USER_ID")
+            delete_value(id, "PASSWORD")
+
     return res
 
 def get_db():

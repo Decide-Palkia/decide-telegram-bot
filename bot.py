@@ -66,13 +66,13 @@ def any_message(message):
         except Exception as e:
             logging.error("Ha ocurrido un problema al guardar el password.", exc_info=True)
         try:
-             if auxiliar.get_save_token(user_id, BASE_URL):
+             if auxiliar.get_save_token_and_id(user_id, BASE_URL):
                  bot.send_message(message.from_user.id, "¡Perfecto!")
                  bot.send_message(message.from_user.id, "Ya hemos guardado tus credenciales.")
              else:
                  bot.send_message(message.from_user.id, "Lo sentimos, los datos introducidos deben ser incorrectos.")
                  login(message)
         except Exception as e:
-            logging.error("Ha ocurrido un problema al obtener el token.", exc_info=True)
+            logging.error("Ha ocurrido un problema al obtener las credenciales.", exc_info=True)
 
 bot.polling(none_stop=True, timeout=120)
