@@ -16,7 +16,28 @@ CREATE_STATUS_SQL = ''' CREATE TABLE STATUS (
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
             CHAT_ID INT NOT NULL,
             IS_LOGIN BOOLEAN DEFAULT 0,
+            IS_VOTING BOOLEAN DEFAULT 0,
             FOREIGN KEY(CHAT_ID) REFERENCES USER(ID) ON DELETE CASCADE
+); '''
+
+CREATE_VOTING_SQL = ''' CREATE TABLE VOTING (
+        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        CHAT_ID INT NOT NULL,
+        VOT_ID INT NOT NULL,
+        NAME TEXT NOT NULL,
+        DESC TEXT NOT NULL,
+        P TEXT NOT NULL,
+        G TEXT NOT NULL,
+        Y TEXT NOT NULL,
+        FOREIGN KEY(CHAT_ID) REFERENCES USER(ID) ON DELETE CASCADE
+); '''
+
+CREATE_OPTION_SQL = ''' CREATE TABLE OPTION (
+        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        VOTING_ID INT NOT NULL,
+        NUMBER INT NOT NULL,
+        TEXT TEXT NOT NULL,
+        FOREIGN KEY(VOTING_ID) REFERENCES VOTING(ID) ON DELETE CASCADE
 ); '''
 
 def check_user(id):
@@ -38,9 +59,13 @@ def create_db():
     conn = get_db()
     conn.execute(''' DROP TABLE IF EXISTS USER; ''')
     conn.execute(''' DROP TABLE IF EXISTS STATUS; ''')
+    conn.execute(''' DROP TABLE IF EXISTS VOTING; ''')
+    conn.execute(''' DROP TABLE IF EXISTS OPTION; ''')
     conn.commit()
     conn.execute(CREATE_USER_SQL)
     conn.execute(CREATE_STATUS_SQL)
+    conn.execute(CREATE_VOTING_SQL)
+    conn.execute(CREATE_OPTION_SQL)
     conn.commit()
     conn.close()
     logging.info("Base de datos creada correctamente.")
@@ -50,10 +75,14 @@ def reset_db(bot, message):
     bot.send_message(message.from_user.id, "Base de datos conectada correctamente.")
     conn.execute(''' DROP TABLE IF EXISTS USER; ''')
     conn.execute(''' DROP TABLE IF EXISTS STATUS; ''')
+    conn.execute(''' DROP TABLE IF EXISTS VOTING; ''')
+    conn.execute(''' DROP TABLE IF EXISTS OPTION; ''')
     conn.commit()
     bot.send_message(message.from_user.id, "Base de datos eliminada correctamente.")
     conn.execute(CREATE_USER_SQL)
     conn.execute(CREATE_STATUS_SQL)
+    conn.execute(CREATE_VOTING_SQL)
+    conn.execute(CREATE_OPTION_SQL)
     conn.commit()
     bot.send_message(message.from_user.id, "Base de datos creada correctamente.")
     conn.close()
