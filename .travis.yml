@@ -1,0 +1,14 @@
+dist: xenial
+
+language: python
+python:
+  - "3.6"
+install:
+  - pip install pyTelegramBotAPI
+  - pip install requests
+  - pip install codacy-coverage
+  - pip install coverage
+script:
+  - coverage xml
+  - python-codacy-coverage -r coverage.xml
+  - python -m unittest tests.py
