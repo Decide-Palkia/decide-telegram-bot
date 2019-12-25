@@ -60,14 +60,14 @@ def reset_db(bot, message):
 
 def set_is_login(id):
     conn = get_db()
-    conn.execute(''' UPDATE STATUS SET IS_LOGIN = TRUE WHERE CHAT_ID = %s; ''' % id)
+    conn.execute(''' UPDATE STATUS SET IS_LOGIN = 'TRUE' WHERE CHAT_ID = %s; ''' % id)
     conn.execute(''' UPDATE USER SET USERNAME = NULL, USER_ID = NULL, TOKEN = NULL WHERE CHAT_ID = %s; ''' % id)
     conn.commit()
     conn.close()
 
 def set_is_not_login(id):
     conn = get_db()
-    conn.execute(''' UPDATE STATUS SET IS_LOGIN = FALSE WHERE CHAT_ID = %s; ''' % id)
+    conn.execute(''' UPDATE STATUS SET IS_LOGIN = 'FALSE' WHERE CHAT_ID = %s; ''' % id)
     conn.commit()
     conn.close()
 
