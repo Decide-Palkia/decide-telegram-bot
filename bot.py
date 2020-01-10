@@ -50,11 +50,11 @@ def login(message):
         logging.error("Ha ocurrido un problema al iniciar el proceso de login.", exc_info=True)
 
 @bot.message_handler(commands=['vote'])
-def vote(message):
+def vote_func(message):
     try:
         auxiliar.set_is_voting(message.from_user.id)
         bot.send_message(message.from_user.id, "Ahora, vas a transmitir un voto para una votación")
-        bot.send_message(message.from_user.id, "Primero de todo,indica el id de la votación en la que quieres participar")
+        bot.send_message(message.from_user.id, "Por favor,indica el id de la votación en la que quieres participar")
     except Exception as e:
         logging.error("Ha ocurrido un problema al iniciar el proceso de login.", exc_info=True)        
 
@@ -82,10 +82,10 @@ def any_message(message):
             
     elif auxiliar.check_value(chat_id, "IS_VOTING", "STATUS") and not auxiliar.check_value(chat_id, "IS_SENDING", "STATUS") :
         try:
-             res , numbers , options = auxiliar.get_find_voting_and_get_options(chat_id, BASE_URL, text)
+             res , numbers , options  = auxiliar.get_find_voting_and_get_options(chat_id, BASE_URL, text)
              if res:
                  bot.send_message(message.from_user.id, "¡Se han encontrado coincidencias!")
-                 bot.send_message(message.from_user.id, "Ahora, selecciona la opcion que quieras votar")
+                 bot.send_message(message.from_user.id, "Ahora, selecciona la opción que quieras votar")
                  markup = types.ReplyKeyboardMarkup(row_width=2 , one_time_keyboard= True)
                  for i in range(0,len(options)):
                      option = options[i]
@@ -94,17 +94,19 @@ def any_message(message):
                      itembtn = types.KeyboardButton(optKeyboard)
                      markup.add(itembtn)  
                      auxiliar.create_option(text , number , option)
-                 bot.send_message(chat_id, "Elige una opcion:", reply_markup=markup)
-                 auxiliar.set_is_sending(chat_id)    
-
+                 bot.send_message(chat_id, "Elige una opción:", reply_markup=markup)
+                 auxiliar.set_is_sending(chat_id)
              else:
-                 bot.send_message(message.from_user.id, "Lo sentimos, no se ha encontrado ninguna votacion con dicho Id.")
+                 bot.send_message(message.from_user.id, "Lo sentimos, no se ha encontrado ninguna votación con dicho Id.")
+                 bot.send_message(message.from_user.id, "Prueba de nuevo a enviar el id de la votación que quieres buscar.")
+                 auxiliar.set_is_not_sending(chat_id)
+                 vote_func(message)
         except Exception as e:
-            logging.error("Ha ocurrido un problema al obtener tu voto.", exc_info=True)
+            logging.error("Ha ocurrido un problema al obtener tu voto.Vuelve a intentar votar", exc_info=True)
 
     elif auxiliar.check_value(chat_id, "IS_VOTING", "STATUS") and auxiliar.check_value(chat_id, "IS_SENDING", "STATUS") :
         try:
-            texto_recibido = text.split('.') #La opcion llega con formato idVotacion.opcion # textoopcion 
+            texto_recibido = text.split('.') #La opción llega con formato idVotacion.opcion # textoopcion 
             vot_id = texto_recibido[0]
             parteVoto= texto_recibido[1].split('#')
             n_option = parteVoto[0]
@@ -120,13 +122,23 @@ def any_message(message):
                 vote =  [a, b]
                 final =  auxiliar.send_data(user, token, vot_id, vote, BASE_URL)
                 if final.status_code is 200:
-                    bot.send_message(message.from_user.id, "Su voto ha sido procesado, gracias por participar en la votación")
+                    bot.send_message(message.from_user.id, "Su voto ha sido procesado, gracias por participar en la votación!")
                 else:
-                    bot.send_message(message.from_user.id, "Su votono ha podido procesarse, intentelo de nuevo")     
+                    bot.send_message(message.from_user.id, "Su voto no ha podido procesarse, por favor, vuelve a intentarlo")
+                    auxiliar.set_is_not_sending(chat_id)
+                    vote_func(message)
+              
             else:
-                bot.send_message(message.from_user.id, "Lo sentimos, no se ha encontrado ninguna votacion con dicho Id.")
+                bot.send_message(message.from_user.id, "No se ha detectado ninguna respuesta perteneciente a la votación.Por favor, repite el proceso otra vez.")
+                auxiliar.set_is_not_sending(chat_id)
+                vote_func(message)
+                
         except Exception as e:
-            logging.error("Ha ocurrido un problema al obtener tu voto.", exc_info=True)        
-    
+            logging.error("Ha ocurrido un problema con el proceso. Por favor, vuelve a intentarlo", exc_info=True) 
+            bot.send_message(message.from_user.id, "No se ha detectado ninguna respuesta perteneciente a la votación.Por favor, repite el proceso otra vez.")
+            auxiliar.set_is_not_sending(chat_id)
+            vote_func(message)
+         
+            
 
 bot.polling(none_stop=True, timeout=120)

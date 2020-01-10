@@ -169,7 +169,7 @@ def set_is_sending(id):
 
 def set_is_not_sending(id):
     conn = get_db()
-    conn.execute(''' UPDATE STATUS SET IS_SENDING = 'FALSE' WHERE CHAT_ID = %s; ''' % id)
+    conn.execute(''' UPDATE STATUS SET IS_SENDING = '0' WHERE CHAT_ID = %s; ''' % id)
     conn.commit()
     conn.close()
 
@@ -198,7 +198,7 @@ def get_find_voting_and_get_options(chat_id, base_url, voting_id):
     form = {
         "voting": voting_id,
     }
-    response = requests.post(url=base_url + "/gateway/booth/getvoting/", data=form)
+    response = requests.post(url=base_url + "/booth/getvoting/", data=form)
     numbers =  []
     options =  []
     if response.status_code is 200:
@@ -217,9 +217,8 @@ def get_find_voting_and_get_options(chat_id, base_url, voting_id):
         p = pub_key['p']
         g = pub_key['g']
         y = pub_key['y']
-        start_date = response.json()['start_date']
-        end_date = response.json()['end_date']
         create_voting(chat_id, vot_id , name , desc , p, g , y )
+
         
 
     return res , numbers , options
@@ -227,9 +226,9 @@ def get_find_voting_and_get_options(chat_id, base_url, voting_id):
  
 def send_data(user, token, voting, vote, base_url):
     data = json.dumps({
-            'voter': user,
-            'token': token,
-            'voting': voting,
+            'voter': int(user),
+            'token': str(token),
+            'voting': int(voting),
             'vote': {'a': str(vote[0]), 'b': str(vote[1])}
         })
 
@@ -237,8 +236,7 @@ def send_data(user, token, voting, vote, base_url):
         'Content-type': 'application/json',
         'Authorization': 'Token ' + token
     }
-    r = requests.post(url = base_url + '/gateway/store/', data = data, headers = headers)
-    print(r.headers)
+    r = requests.post(url = base_url + '/store/', data = data, headers = headers)
     return r
 
 
