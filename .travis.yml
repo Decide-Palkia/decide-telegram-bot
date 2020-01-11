@@ -2,15 +2,17 @@ dist: xenial
 
 language: python
 python:
-  - "3.7"
+- '3.7'
 install:
-  - pip install pyTelegramBotAPI
-  - pip install requests
-  - pip install codacy-coverage
-  - pip install coverage
-  - pip install pycryptodome
+- pip install -r requirements.txt
 script:
-  - coverage run --branch --source=. ./tests.py
-  - coverage xml
-  - python-codacy-coverage -r coverage.xml
-  - python -m unittest tests.py
+- coverage run --branch --source=. ./tests.py
+- coverage xml
+- python-codacy-coverage -r coverage.xml
+- python -m unittest tests.py
+deploy:
+  provider: heroku
+  app: decide-palkia-bot
+  strategy: git
+  api_key:
+    secure: H7GkrD8otV48zZprIORdO9s8+wKTwJM7J9NUFz+zBlxLmalgHiEUh/GBa19Dl6fQcxhxqQY+AsZMumdnfhs3yVWzPfGnoo1LiBohKFi6ozYdngNk/ftR+9etFMv7m+oNIogp9J9EbsNcuIncWp+lyrZDGA92s3egWLsfkgz1Ay35qiTaZlyAQ9yMwsB6I8GC4JHfYiMgNs82eO5B8pQGfS0yWgQL3nm2RaRZewW4qhavhZQMC8ICmeUFknLH49/gviMCNUrgTyjYiwQnHe33FL5kwYubunJ782c9sY5CiBINkB3LMVVGGl8XBxbu3znSmSn6w2ao17FM5Y1iUc3q2PIzEXykU/C4esvtpULV1UOVg3PMH/CbEQ793Shl/7AGJsB5amaS+QAa+yDvAdUN4Nm5ugKvyz0hY1ukjf2m0K5mxW0fYD9PwgsKel9x1NaMsyczL/wCqVZBmkDq23nfTncf2bVj/kchV7QdU4Hp/ulU3O3+zU3OxPj3dKHcu63OhymrhAx1PsHNHHiufUC2dpcix+/GptG6ZFlYQcCkiR1LfVGnWOvosePr1dtp6wTsdSH6hPLEDDoXB/C4NJBaWcVIIiKx29nAaPxPqZIjmw9C4rqBcnD84hoPIwctU8sRySDy6w6zbcjb9GoGbFsJvhBQnVAIeie+9J7s0JUKz6o=
