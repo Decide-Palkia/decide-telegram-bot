@@ -53,6 +53,14 @@ def check_user(id):
     conn.close()
     return user
 
+def check_test(table,atribute,id):
+    conn = get_db()
+    cursor = conn.execute(''' SELECT * FROM %s WHERE %s = %s; '''  % (table,atribute,id))
+    conn.commit()
+    result = cursor.fetchone()
+    conn.close()
+    return result
+
 def create_user(id):
     conn = get_db()
     conn.execute(''' INSERT INTO USER (CHAT_ID) VALUES (%s); ''' % id)
@@ -101,7 +109,7 @@ def set_is_login(id):
 
 def set_is_not_login(id):
     conn = get_db()
-    conn.execute(''' UPDATE STATUS SET IS_LOGIN = 0 WHERE CHAT_ID = %s; ''' % id)
+    conn.execute(''' UPDATE STATUS SET IS_LOGIN = '0' WHERE CHAT_ID = %s; ''' % id)
     conn.commit()
     conn.close()
 
@@ -132,14 +140,14 @@ def get_save_token_and_id(id, base_url, password):
         "username": username,
         "password": password
     }
-    response = requests.post(url=base_url + "/gateway/authentication/login/", data=form)
+    response = requests.post(url=base_url + "/authentication/login/", data=form)
     if response.status_code is 200:
         token = response.json()['token']
         save_value(id, token, "TOKEN", "USER")
         res = True
 
         form = {"token": token}
-        response = requests.post(url=base_url + "/gateway/authentication/getuser/", data=form)
+        response = requests.post(url=base_url + "/authentication/getuser/", data=form)
         if response.status_code is 200:
             user_id = response.json()['id']
             save_value(id, user_id, "USER_ID", "USER")
@@ -158,7 +166,7 @@ def set_is_voting(id):
 
 def set_is_not_voting(id):
     conn = get_db()
-    conn.execute(''' UPDATE STATUS SET IS_VOTING = 'FALSE' WHERE CHAT_ID = %s; ''' % id)
+    conn.execute(''' UPDATE STATUS SET IS_VOTING = '0' WHERE CHAT_ID = %s; ''' % id)
     conn.commit()
     conn.close()
 
@@ -232,7 +240,6 @@ def send_data(user, token, voting, vote, base_url):
             'voting': int(voting),
             'vote': {'a': str(vote[0]), 'b': str(vote[1])}
         })
-
     headers = {
         'Content-type': 'application/json',
         'Authorization': 'Token ' + token
