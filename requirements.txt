@@ -1,0 +1,5 @@
+pyTelegramBotAPI
+requests
+codacy-coverage
+coverage
+pycryptodome
