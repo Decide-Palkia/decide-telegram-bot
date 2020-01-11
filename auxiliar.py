@@ -140,14 +140,14 @@ def get_save_token_and_id(id, base_url, password):
         "username": username,
         "password": password
     }
-    response = requests.post(url=base_url + "/authentication/login/", data=form)
+    response = requests.post(url=base_url + "/authentication/login/", data=json.dumps(form), headers={'Content-type': 'application/json'})
     if response.status_code is 200:
         token = response.json()['token']
         save_value(id, token, "TOKEN", "USER")
         res = True
 
         form = {"token": token}
-        response = requests.post(url=base_url + "/authentication/getuser/", data=form)
+        response = requests.post(url=base_url + "/authentication/getuser/", data=json.dumps(form), headers={'Content-type': 'application/json'})
         if response.status_code is 200:
             user_id = response.json()['id']
             save_value(id, user_id, "USER_ID", "USER")
