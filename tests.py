@@ -120,11 +120,10 @@ class db_tests(unittest.TestCase):
     def test_14_send_data(self):
         user=1
         token='3b7fb31e5f773ec98e1765016e6b8849bd58a5d0'
-        voting=1
+        voting=5
         vote=[74992538839646296004726663185834817572060750836415531801474354089190162666204,62314593341405448893305169141281618287582639200558260911053918507862958690957]
         base_url='https://decide-palkia-django.herokuapp.com'
         res = auxiliar.send_data(user, token, voting, vote, base_url)
-        res.status_code is 200
         self.assertTrue(res.status_code is 200)
             
 
