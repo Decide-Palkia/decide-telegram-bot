@@ -125,7 +125,9 @@ class db_tests(unittest.TestCase):
         base_url='https://decide-palkia-django.herokuapp.com'
         res = auxiliar.send_data(user, token, voting, vote, base_url)
         self.assertTrue(res.status_code is 200)
-            
+
+    def test_15_example(self):
+        self.assertTrue(True)
 
 if __name__ == "__main__":
     unittest.main()

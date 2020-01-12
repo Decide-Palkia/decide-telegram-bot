@@ -56,7 +56,17 @@ def vote_func(message):
         bot.send_message(message.from_user.id, "Ahora, vas a transmitir un voto para una votación")
         bot.send_message(message.from_user.id, "Por favor,indica el id de la votación en la que quieres participar")
     except Exception as e:
-        logging.error("Ha ocurrido un problema al iniciar el proceso de login.", exc_info=True)        
+        logging.error("Ha ocurrido un problema al iniciar el proceso de login.", exc_info=True)
+
+@bot.message_handler(commands=['help'])
+def help(message):
+    try:
+        bot.send_message(message.from_user.id, "¡Aquí tienes la lista de comandos disponibles!")
+        bot.send_message(message.from_user.id, "/start: Inicio del Bot.")
+        bot.send_message(message.from_user.id, "/login: Inicia sesión en Decide con tus credenciales.")
+        bot.send_message(message.from_user.id, "/vote: Emite un voto en Decide.")
+    except Exception as e:
+        logging.error("Ha ocurrido un problema al mostrar el mensaje de ayuda.", exc_info=True)
 
 @bot.message_handler(func=lambda m: True)
 def any_message(message):
